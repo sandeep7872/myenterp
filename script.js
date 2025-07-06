@@ -251,6 +251,29 @@ function sendWhatsAppOrder() {
   const whatsappNumber = "917852919235";
   const encoded = encodeURIComponent(message);
   window.open(`https://wa.me/${whatsappNumber}?text=${encoded}`, '_blank');
+
+  // Construct data to send to sheet
+const orderData = {
+  name,
+  phone,
+  address,
+  total: cart.reduce((t, item) => t + item.price * item.quantity, 0),
+  items: cart.map(item => 
+    `${item.name} (${item.type}) x${item.quantity}${item.type === 'bulk' ? ` (bulkQty: ${item.bulkQty})` : ''}`
+  ).join(", ")
+};
+
+// Send to Google Sheet
+fetch("https://script.google.com/macros/s/AKfycbzVsmAp2YGeutJ_RzICwnFIp4uz0kmg4Byof2fmozEESjX2Dhn7LPQ7jA2nDEfVbtCt/exec", {
+  method: "POST",
+  body: JSON.stringify(orderData),
+  headers: {
+    "Content-Type": "application/json"
+  }
+}).then(res => res.json()).then(res => {
+  console.log("Order saved to sheet:", res);
+});
+
 }
 
 function autofillUserData() {
